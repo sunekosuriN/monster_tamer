@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle - 魔物使いのダンジョン</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="game-window">
+    <div class="section-enemies" id="enemy-area">
+        </div>
+
+    <div class="section-message">
+        <div class="message-text" id="log-message-area">
+            戦闘準備中...
+        </div>
+    </div>
+
+    <div class="section-allies" id="ally-area">
+        </div>
+
+    <div id="action-overlay" class="action-overlay hidden">
+        <div class="command-panel bordered-box">
+            <button class="cmd-btn" onclick="openSkillWindow()">⚔️ スキル</button>
+            <button class="cmd-btn" onclick="executeSkill(902, null)">🛡️ 防御</button>
+        </div>
+    </div>
+</div>
+
+<div id="skill-window" class="modal hidden">
+    <div class="modal-content skill-content bordered-box">
+        <h3>スキルを選択してください</h3>
+        <div id="skill-list" class="skill-group">
+            </div>
+        <button class="close-btn" onclick="closeSkillWindow()">戻る</button>
+    </div>
+</div>
+
+<div id="result-modal" class="modal hidden">
+    <div class="modal-content result-content bordered-box">
+        <h2 id="result-title">RESULT</h2>
+        <p id="result-body"></p>
+        
+        <div id="recruit-area" class="hidden">
+            <p id="recruit-msg">なんと 魔物が 起き上がった！</p>
+            <div class="recruit-btns">
+                <button class="cmd-btn" onclick="recruitEnemy()">仲間にする</button>
+                <button class="cmd-btn" onclick="finishBattle()">断る</button>
+            </div>
+        </div>
+
+        <button id="next-floor-btn" class="cmd-btn hidden" onclick="finishBattle()">次の階層へ</button>
+        
+        <button id="title-btn" class="cmd-btn hidden" onclick="location.href='/'">タイトルへ戻る</button>
+    </div>
+</div>
+
+<script src="/js/battle.js"></script>
+</body>
+</html>
