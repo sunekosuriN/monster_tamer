@@ -31,7 +31,7 @@ async function startBattle() {
         // 背景やユニットの初期描画
         renderStaticParts();
         
-        // 最初のログ（「〇〇が現れた！」等）をキューに入れて表示開始
+        // 最初のログをキューに入れて表示開始
         enqueueMessages(currentContext.logs);
         
     } catch (e) {
@@ -45,7 +45,7 @@ async function startBattle() {
  */
 
 /**
- * 背景やユニットの配置を描画（メッセージ再生中も更新される）
+ * 背景やユニットの配置を描画
  */
 function renderStaticParts() {
     if (!currentContext) return;
@@ -81,7 +81,6 @@ function renderUnits() {
     currentContext.playerParty.party.forEach((unit, index) => {
         const allyBox = createUnitBox(unit, index, false);
         
-        // メッセージ再生中でなければクリック可能
         if (unit.alive && !isDisplayingMessages) {
             allyBox.onclick = () => {
                 selectedAllyIndex = index;
@@ -99,21 +98,18 @@ function renderUnits() {
 
 /**
  * コマンドボタンやモーダルの制御
- * （メッセージをすべて読み終えた後に呼び出される）
  */
 function renderBattleUI() {
     renderUnits();
 
     const overlay = document.getElementById("action-overlay");
     
-    // 戦闘終了時またはメッセージ再生中はコマンドを隠す
     if (currentContext.battleOver || isDisplayingMessages) {
         overlay.classList.add("hidden");
         if (currentContext.battleOver && !isDisplayingMessages) {
             showResultModal();
         }
     } else if (selectedAllyIndex !== null) {
-        // メッセージを読み終え、かつ味方を選択しているならコマンドを表示
         overlay.classList.remove("hidden");
     } else {
         overlay.classList.add("hidden");
@@ -121,12 +117,19 @@ function renderBattleUI() {
 }
 
 /**
- * ユニットボックス生成
+ * ユニットボックス生成 (アーマーバー対応)
  */
 function createUnitBox(unit, index, isEnemy) {
     const div = document.createElement("div");
     div.className = `unit-box ${isEnemy ? 'enemy' : 'ally'} ${unit.alive ? '' : 'dead'}`;
+    
+    // HPの割合
     const hpPercent = (unit.currentHp / unit.maxHp) * 100;
+    
+    // アーマーの計算
+    const hasArmor = unit.maxArmor > 0;
+    const armorPercent = hasArmor ? (unit.currentArmor / unit.maxArmor) * 100 : 0;
+    
     const imgUrl = unit.imageUrl || '/images/monsters/bomb.png';
 
     div.innerHTML = `
@@ -134,10 +137,18 @@ function createUnitBox(unit, index, isEnemy) {
         <div class="img-container">
             <img src="${imgUrl}" class="unit-img" onerror="this.onerror=null;this.src='/images/monsters/bomb.png';">
         </div>
+        
+        <div class="armor-bar-container" style="${hasArmor ? '' : 'display:none;'}">
+            <div class="armor-bar-fill" style="width: ${armorPercent}%"></div>
+        </div>
+
         <div class="hp-bar-container">
             <div class="hp-bar-fill" style="width: ${hpPercent}%"></div>
         </div>
-        <div class="hp-text">${unit.currentHp} / ${unit.maxHp}</div>
+        <div class="hp-text">
+            ${unit.currentHp} / ${unit.maxHp}
+            ${hasArmor ? ' <span class="armor-text">(🛡️' + unit.currentArmor + ')</span>' : ''}
+        </div>
     `;
     return div;
 }
@@ -146,35 +157,23 @@ function createUnitBox(unit, index, isEnemy) {
  * 3. メッセージ送りロジック
  */
 
-/**
- * ログをキューに追加して表示を開始する
- */
 function enqueueMessages(logs) {
     if (!logs || logs.length === 0) {
         finishMessageDisplay();
         return;
     }
-    messageQueue = [...logs]; // ログをコピー
+    messageQueue = [...logs];
     isDisplayingMessages = true;
-    
-    // コマンドを一時的に隠す
     document.getElementById("action-overlay").classList.add("hidden");
-    
     showNextMessage();
 }
 
-/**
- * メッセージウィンドウ（HTML側）から呼ばれるクリックイベント
- */
 function onMessageClick() {
     if (isDisplayingMessages) {
         showNextMessage();
     }
 }
 
-/**
- * キューから次のメッセージを取り出して表示
- */
 function showNextMessage() {
     if (messageQueue.length === 0) {
         finishMessageDisplay();
@@ -186,17 +185,12 @@ function showNextMessage() {
     const indicator = document.getElementById("message-next-indicator");
 
     area.innerText = msg;
-    indicator.classList.remove("hidden"); // 「▼」を表示
+    indicator.classList.remove("hidden");
 }
 
-/**
- * すべてのメッセージを表示し終わった時の処理
- */
 function finishMessageDisplay() {
     isDisplayingMessages = false;
     document.getElementById("message-next-indicator").classList.add("hidden");
-    
-    // UI（コマンドボタンやリザルト）の表示を確定させる
     renderBattleUI();
 }
 
@@ -274,18 +268,13 @@ function openStatusWindow() {
  */
 async function executeSkill(skillId, targetIndex) {
     try {
-        // コマンドを即座に隠し、選択状態をリセット
         document.getElementById("action-overlay").classList.add("hidden");
-        const prevAllyIndex = selectedAllyIndex;
         selectedAllyIndex = null;
 
         const response = await fetch(`/battle/action?skillId=${skillId}&targetIndex=${targetIndex}`, { method: "POST" });
         currentContext = await response.json();
         
-        // ユニットのステータス（HP減少など）をまず描画
         renderStaticParts();
-        
-        // 新しいログをキューに入れて、順番に表示
         enqueueMessages(currentContext.logs);
 
     } catch (e) {

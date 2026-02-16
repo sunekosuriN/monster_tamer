@@ -6,7 +6,7 @@
 body {
     margin: 0;
     padding: 0;
-    background-color: #2c3e50; /* 外側の背景 */
+    background-color: #2c3e50;
     font-family: 'DotGothic16', sans-serif;
     display: flex;
     justify-content: center;
@@ -15,10 +15,9 @@ body {
     color: #333;
 }
 
-/* ゲーム画面のメイン枠 */
 .game-window {
-    width: 960px;
-    height: 720px;
+    width: 1100px;
+    height: 850px;
     background-color: #ecf0f1;
     border: 6px solid #34495e;
     display: flex;
@@ -27,55 +26,46 @@ body {
     box-sizing: border-box;
     gap: 10px;
     position: relative;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    box-shadow: 0 0 30px rgba(0,0,0,0.7);
     overflow: hidden;
-}
-
-/* 共通：ドット絵風の太枠 */
-.bordered-box {
-    border: 4px solid #34495e;
-    background: white;
-    padding: 10px;
 }
 
 /* =========================================
    レイアウトセクション
    ========================================= */
 
-/* 項目3: 上段・敵エリア（背景画像がここに適用されます） */
 .section-enemies {
-    flex: 3;
+    flex: 3; 
     display: flex;
     justify-content: center;
     align-items: flex-end;
     gap: 30px;
-    padding-bottom: 20px;
-    border-radius: 5px;
-    /* JSで画像が読み込まれるまでのフォールバック背景 */
-    background-color: #87CEEB; 
+    padding-bottom: 10px;
+    background-color: transparent; 
     transition: background-image 0.5s ease-in-out;
 }
 
-/* 中段：メッセージログ */
 .section-message {
-    flex: 1.5;
-    background-color: #000;
+    flex: 1.5; /* 少し比率を下げて上下のスペースを確保 */
+    min-height: 130px; 
+    background-color: rgba(0, 0, 0, 0.85);
     color: #fff;
-    padding: 15px;
+    padding: 15px 25px;
     border: 4px solid #7f8c8d;
     overflow-y: auto;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     line-height: 1.6;
+    cursor: pointer;
+    position: relative;
 }
 
-/* 下段：味方エリア */
 .section-allies {
-    flex: 2.5;
+    flex: 4.5; /* 味方エリアのスペースをさらに優先 */
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    gap: 40px;
-    padding-top: 20px;
+    align-items: flex-start; /* 上揃えにすることでバーを見えやすく */
+    gap: 30px;
+    padding-top: 10px;
 }
 
 /* =========================================
@@ -83,47 +73,30 @@ body {
    ========================================= */
 
 .unit-box {
-    width: 160px;
+    /* 修正：240px -> 200px にサイズダウン */
+    width: 200px; 
     text-align: center;
     transition: all 0.2s ease;
-    padding: 10px;
+    padding: 5px;
     border: 3px solid transparent;
-}
-
-/* 項目1: 味方モンスターのホバー演出 */
-.unit-box.ally:not(.dead):hover {
-    cursor: pointer;
-    transform: translateY(-5px);
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-}
-
-.unit-box.ally:not(.dead):hover .unit-img {
-    filter: drop-shadow(0 0 10px #2ecc71);
-}
-
-/* 項目1: 味方を選択した時の強調表示 */
-.selected-unit {
-    border: 3px solid #f1c40f !important;
-    background: rgba(241, 196, 15, 0.1);
-    box-shadow: 0 0 15px #f1c40f;
-    border-radius: 10px;
-    transform: scale(1.05);
+    background: transparent; 
 }
 
 .unit-name {
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     margin-bottom: 5px;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(0, 0, 0, 0.7);
     border-radius: 5px;
-    color: #000;
+    color: #fff;
+    padding: 3px 10px;
+    display: inline-block;
 }
 
-/* 画像コンテナ */
 .img-container {
-    width: 140px;
-    height: 140px;
+    /* 修正：220px -> 180px にサイズダウン */
+    width: 180px;
+    height: 180px;
     margin: 5px auto;
     display: flex;
     justify-content: center;
@@ -133,35 +106,69 @@ body {
 .unit-img {
     max-width: 100%;
     max-height: 100%;
-    image-rendering: pixelated; /* ドット絵のぼやけ防止 */
+    image-rendering: pixelated;
 }
 
-/* HPバー */
-.hp-bar-container {
+/* HP/アーマーバー */
+.armor-bar-container, .hp-bar-container {
     width: 100%;
+    margin: 2px auto;
+}
+
+.armor-bar-container {
+    height: 8px;
+    background-color: rgba(52, 73, 94, 0.8);
+    border: 1px solid #2c3e50;
+    overflow: hidden;
+    border-radius: 2px;
+}
+
+.armor-bar-fill {
+    height: 100%;
+    background-color: #3498db;
+    transition: width 0.3s ease;
+}
+
+.hp-bar-container {
     height: 12px;
-    background-color: #c0392b; /* 減少部分 */
+    background-color: #c0392b;
     border: 2px solid #333;
-    margin-top: 5px;
     overflow: hidden;
 }
 
 .hp-bar-fill {
     height: 100%;
-    background-color: #2ecc71; /* 残りHP */
+    background-color: #2ecc71;
     transition: width 0.3s ease;
 }
 
 .hp-text {
-    font-size: 0.9rem;
-    margin-top: 2px;
-    color: #000;
+    font-size: 1rem;
+    margin-top: 3px;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
 }
 
-/* 死亡状態 */
+/* ホバー・選択演出 */
+.unit-box.ally:not(.dead):hover {
+    cursor: pointer;
+    transform: translateY(-5px);
+}
+
+.unit-box.ally:not(.dead):hover .unit-img {
+    filter: drop-shadow(0 0 10px #2ecc71);
+}
+
+.selected-unit {
+    border: 3px solid #f1c40f !important;
+    background: rgba(241, 196, 15, 0.15) !important;
+    box-shadow: 0 0 15px #f1c40f;
+    border-radius: 10px;
+}
+
 .unit-box.dead {
     filter: grayscale(100%) brightness(0.4);
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
 /* =========================================
@@ -170,36 +177,33 @@ body {
 
 .action-overlay {
     position: absolute;
-    bottom: 40px;
+    bottom: 40px; 
     left: 50%;
     transform: translateX(-50%);
+    z-index: 50;
 }
 
 .command-panel {
     display: flex;
     gap: 20px;
-    padding: 15px 30px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    padding: 10px 30px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 4px solid #34495e;
 }
 
 .cmd-btn {
     padding: 10px 25px;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-family: 'DotGothic16', sans-serif;
     cursor: pointer;
     background-color: #34495e;
     color: white;
-    border: 3px solid #2c3e50;
+    border: 2px solid #2c3e50;
     border-radius: 5px;
-    transition: background 0.2s;
-}
-
-.cmd-btn:hover {
-    background-color: #5d6d7e;
 }
 
 /* =========================================
-   モーダル（技選択・結果表示）
+   モーダル・その他
    ========================================= */
 
 .modal {
@@ -208,7 +212,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.85);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -217,7 +221,7 @@ body {
 
 .modal-content {
     min-width: 450px;
-    max-width: 600px;
+    max-width: 650px;
     text-align: center;
 }
 
@@ -230,34 +234,26 @@ body {
 
 .skill-btn {
     padding: 15px;
-    text-align: left;
     background: #f8f9fa;
-    border: 2px solid #ddd;
+    border: 3px solid #34495e;
     cursor: pointer;
     font-family: 'DotGothic16', sans-serif;
+    border-radius: 8px;
 }
 
-.skill-btn:hover:not(:disabled) {
-    background: #e9ecef;
-    border-color: #34495e;
+#message-next-indicator {
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    color: #f1c40f;
+    font-size: 1.5rem;
+    animation: blink 0.8s infinite;
 }
 
-.s-name { font-size: 1.2rem; font-weight: bold; }
-.s-uses { font-size: 0.9rem; color: #666; }
-
-.hidden {
-    display: none !important;
+@keyframes blink {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
-/* 戦闘結果の装飾 */
-#result-title {
-    font-size: 3.5rem;
-    margin: 0;
-}
-
-.recruit-btns {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 15px;
-}
+.hidden { display: none !important; }
