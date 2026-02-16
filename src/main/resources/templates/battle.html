@@ -14,10 +14,11 @@
     <div class="section-enemies" id="enemy-area">
         </div>
 
-    <div class="section-message bordered-box">
+    <div class="section-message bordered-box" id="message-window" onclick="onMessageClick()">
         <div class="message-text" id="log-message-area">
-            戦闘データを読み込んでいます...
+            <span th:text="#{system.loading}"></span>
         </div>
+        <div id="message-next-indicator" class="hidden" th:text="#{battle.ui.click_indicator}"></div>
     </div>
 
     <div class="section-allies" id="ally-area">
@@ -25,37 +26,37 @@
 
     <div id="action-overlay" class="action-overlay hidden">
         <div class="command-panel bordered-box">
-            <button class="cmd-btn" onclick="openSkillWindow()">⚔️ 技</button>
-            <button class="cmd-btn" onclick="openStatusWindow()">📜 ステータス確認</button>
+            <button class="cmd-btn" id="btn-skill" onclick="openSkillWindow()" th:text="#{battle.ui.skill}"></button>
+            <button class="cmd-btn" id="btn-status" onclick="openStatusWindow()" th:text="#{battle.ui.status_confirm}"></button>
         </div>
     </div>
 </div>
 
 <div id="skill-window" class="modal hidden">
     <div class="modal-content skill-content bordered-box">
-        <h3 id="skill-window-title">技を選択してください</h3>
+        <h3 id="skill-window-title" th:text="#{battle.ui.select_skill}"></h3>
         <div id="skill-list" class="skill-group">
             </div>
-        <button class="close-btn" onclick="closeSkillWindow()">戻る</button>
+        <button class="close-btn" onclick="closeSkillWindow()" th:text="#{battle.ui.back}"></button>
     </div>
 </div>
 
 <div id="result-modal" class="modal hidden">
     <div class="modal-content result-content bordered-box">
-        <h2 id="result-title">RESULT</h2>
+        <h2 id="result-title" th:text="#{battle.ui.result}"></h2>
         <p id="result-body"></p>
         
         <div id="recruit-area" class="hidden">
-            <p id="recruit-msg">なんと 魔物が 起き上がった！</p>
+            <p id="recruit-msg" th:text="#{battle.ui.recruit_msg}"></p>
             <div class="recruit-btns">
-                <button class="cmd-btn" onclick="recruitEnemy()">仲間にする</button>
-                <button class="cmd-btn" onclick="finishBattle()">断る</button>
+                <button class="cmd-btn" onclick="recruitEnemy()" th:text="#{battle.ui.recruit_yes}"></button>
+                <button class="cmd-btn" onclick="finishBattle()" th:text="#{battle.ui.recruit_no}"></button>
             </div>
         </div>
 
-        <button id="next-floor-btn" class="cmd-btn hidden" onclick="finishBattle()">次の階層へ</button>
+        <button id="next-floor-btn" class="cmd-btn hidden" onclick="finishBattle()" th:text="#{battle.ui.next_floor}"></button>
         
-        <button id="title-btn" class="cmd-btn hidden" onclick="location.href='/'">タイトルへ戻る</button>
+        <button id="title-btn" class="cmd-btn hidden" onclick="location.href='/'" th:text="#{battle.ui.back_to_title}"></button>
     </div>
 </div>
 

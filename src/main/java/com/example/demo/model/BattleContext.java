@@ -10,19 +10,33 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BattleContext {
 
-	private BattleParty playerParty = new BattleParty();
-	private BattleParty enemyParty = new BattleParty();
+    private BattleParty playerParty = new BattleParty();
+    private BattleParty enemyParty = new BattleParty();
 
-	private int currentFloor = 1;
-	private int turnCount = 1;
-	private List<String> battleLogs = new ArrayList<>();
+    private int currentFloor = 1;
+    private int turnCount = 1;
 
-	private boolean isBattleOver = false;
-	private boolean isVictory = false;
-	private boolean isTamed = false;
+    // JavaScriptの currentContext.logs と名前を一致させる
+    private List<String> logs = new ArrayList<>();
 
-	public void addLog(String message) {
-		this.battleLogs.add(message);
-	}
+    private boolean isBattleOver = false;
+    private boolean isVictory = false;
+    private boolean isTamed = false;
 
+    /**
+     * ログを追加する
+     */
+    public void addLog(String message) {
+        if (message != null && !message.isEmpty()) {
+            this.logs.add(message);
+        }
+    }
+
+    /**
+     * ターン開始時に古いログを消去する
+     * これにより、フロントエンドには「そのターンに起きたこと」だけが送られます
+     */
+    public void clearLogs() {
+        this.logs.clear();
+    }
 }
