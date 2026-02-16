@@ -13,24 +13,24 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /**
- * 1. 戦闘開始処理
+ * 1. 戦闘開始処理 (API呼び出し)
  */
 async function startBattle() {
     try {
         const response = await fetch("/battle/start", { method: "POST" });
-        if (!response.ok) throw new Error("Network Response Error");
+        if (!response.ok) throw new Error("API通信に失敗しました");
         
         currentContext = await response.json();
         
-        // ログエリアを初期化し、戦闘データを描画
-        console.log("Battle Started:", currentContext);
-        renderBattle();
+        // デバッグ用: サーバーからのデータをコンソールで確認
+        console.log("Battle Data Received:", currentContext);
         
+        renderBattle();
     } catch (e) {
         console.error(e);
-        // 項目4: エラー時のメッセージ表示を親切に
+        // 項目4: メッセージエリアにエラーを表示
         const logArea = document.getElementById("log-message-area");
-        logArea.innerHTML = `<div style="color:#ff6b6b">【システムエラー】戦闘データを取得できませんでした。サーバーの起動状態やDBを確認してください。</div>`;
+        logArea.innerHTML = `<div style="color:#ff6b6b">【エラー】戦闘データを取得できませんでした。サーバーのログを確認してください。</div>`;
     }
 }
 
@@ -47,6 +47,7 @@ function renderBattle() {
     const enemyArea = document.getElementById("enemy-area");
     enemyArea.innerHTML = "";
     currentContext.enemyParty.party.forEach((unit, index) => {
+        // 敵は基本クリック不可（技選択後のターゲット指定時のみJSでイベントを付与）
         enemyArea.appendChild(createUnitBox(unit, index, true));
     });
 
@@ -56,14 +57,14 @@ function renderBattle() {
     currentContext.playerParty.party.forEach((unit, index) => {
         const allyBox = createUnitBox(unit, index, false);
         
-        // 項目1: 味方をクリックして選択状態にする
+        // 項目1: 味方をクリックして行動を選択する
         if (unit.alive) {
             allyBox.onclick = () => selectAlly(index);
         }
         
-        // 選択中の味方を強調
+        // 選択中の味方に強調クラス（selected-unit）を付与
         if (selectedAllyIndex === index) {
-            allyBox.classList.add("selected");
+            allyBox.classList.add("selected-unit");
         }
         
         allyArea.appendChild(allyBox);
@@ -76,13 +77,13 @@ function renderBattle() {
         logArea.scrollTop = logArea.scrollHeight;
     }
 
-    // --- コマンドパネルの表示制御 ---
+    // --- コマンドパネル（操作ボタン）の表示制御 ---
     const actionOverlay = document.getElementById("action-overlay");
     if (currentContext.battleOver) {
         actionOverlay.classList.add("hidden");
         showResultModal();
     } else if (selectedAllyIndex !== null) {
-        // 味方を選択している場合のみ、操作パネル（技・ステータス）を表示
+        // 味方を選択している時だけ「技」「ステータス確認」を表示
         actionOverlay.classList.remove("hidden");
     } else {
         actionOverlay.classList.add("hidden");
@@ -90,17 +91,17 @@ function renderBattle() {
 }
 
 /**
- * 項目3: 背景画像の更新ロジック
- * 仕様: 1,2層=floor1, 3,4層=floor2, 5,6層=floor3... 
+ * 項目3: 背景画像の切り替えロジック
+ * 仕様: 1,2層=floor1, 3,4層=floor2, 5,6層=floor3...
  */
 function updateBackground() {
     const screen = document.getElementById("battle-screen");
     const currentFloor = currentContext.currentFloor || 1;
     
-    // 2層ごとに1、2、3...と増加する数値を計算
+    // 2層ごとにカウントアップ (Math.ceil(1/2)=1, Math.ceil(2/2)=1, Math.ceil(3/2)=2...)
     const bgIndex = Math.ceil(currentFloor / 2);
     
-    // 背景画像のパスを設定
+    // 画像パス: static/images/floor/floorX.png
     const bgUrl = `/images/floor/floor${bgIndex}.png`;
     
     screen.style.backgroundImage = `url('${bgUrl}')`;
@@ -109,7 +110,7 @@ function updateBackground() {
 }
 
 /**
- * モンスターの表示用ボックス作成
+ * モンスター個別の表示パーツ生成
  */
 function createUnitBox(unit, index, isEnemy) {
     const div = document.createElement("div");
@@ -131,19 +132,19 @@ function createUnitBox(unit, index, isEnemy) {
 }
 
 /**
- * 味方をクリックした時の選択処理
+ * 項目1: 味方を選択した時の処理
  */
 function selectAlly(index) {
     selectedAllyIndex = index;
-    selectedSkillId = null; // 技の選択をリセット
+    selectedSkillId = null; // 他の味方へ切り替えた際は技選択をリセット
     renderBattle();
 }
 
 /**
- * 3. コマンドアクション
+ * 3. コマンドアクション処理
  */
 
-// 「技」ボタン
+// 「技」ボタン：スキル選択窓を開く
 function openSkillWindow() {
     if (selectedAllyIndex === null) return;
     
@@ -166,11 +167,13 @@ function openSkillWindow() {
             btn.onclick = () => {
                 selectedSkillId = skill.skillMaster.id;
                 closeSkillWindow();
-                // ログに対象選択を促すメッセージを表示
+                
+                // ターゲット選択を促すメッセージ表示
                 const logArea = document.getElementById("log-message-area");
-                logArea.innerHTML += `<div style="color:#00ffff">${actor.name}の「${skill.skillMaster.name}」！ 対象の敵を選んでください。</div>`;
+                logArea.innerHTML += `<div style="color:#00ffff">${actor.name}の「${skill.skillMaster.name}」発動準備。対象の敵を選んでください。</div>`;
                 logArea.scrollTop = logArea.scrollHeight;
                 
+                // 敵モンスターをクリック可能にする
                 enableEnemyTargeting();
             };
         } else {
@@ -188,7 +191,7 @@ function closeSkillWindow() {
 }
 
 /**
- * 技選択後に敵をクリックできるようにする処理
+ * 技選択後、敵に攻撃対象カーソルを出す
  */
 function enableEnemyTargeting() {
     const enemies = document.querySelectorAll(".unit-box.enemy");
@@ -197,7 +200,7 @@ function enableEnemyTargeting() {
             el.style.cursor = "crosshair";
             el.style.filter = "drop-shadow(0 0 15px #ff4757)";
             
-            // 敵をクリックしたら技を実行
+            // 敵をクリックして技を実行
             el.onclick = () => executeSkill(selectedSkillId, index);
         }
     });
@@ -210,15 +213,14 @@ function openStatusWindow() {
     if (selectedAllyIndex === null) return;
     const unit = currentContext.playerParty.party[selectedAllyIndex];
     
-    // ステータス情報をアラートで表示（または専用モーダル）
     const info = `
-【${unit.name}の能力】
+【${unit.name}のステータス】
 HP: ${unit.currentHp} / ${unit.maxHp}
 攻撃力: ${unit.currentAttack}
 素早さ: ${unit.currentSpeed}
 アーマー: ${unit.currentArmor}
     `;
-    alert(info);
+    alert(info); // 将来的に専用モーダルに置き換え可能
 }
 
 /**
@@ -226,15 +228,15 @@ HP: ${unit.currentHp} / ${unit.maxHp}
  */
 async function executeSkill(skillId, targetIndex) {
     try {
-        // 二重送信を防ぐために操作を隠す
+        // 二重送信防止
         document.getElementById("action-overlay").classList.add("hidden");
 
-        const response = await fetch(`/battle/action?skillId=${skillId}&targetIndex=${targetIndex || 0}`, { 
+        const response = await fetch(`/battle/action?skillId=${skillId}&targetIndex=${targetIndex}`, { 
             method: "POST" 
         });
         currentContext = await response.json();
         
-        // ターンの終了後に選択状態をリセット
+        // ターン終了後に選択状態をクリア
         selectedAllyIndex = null;
         selectedSkillId = null;
         
@@ -245,7 +247,7 @@ async function executeSkill(skillId, targetIndex) {
 }
 
 /**
- * 5. 戦闘結果の表示
+ * 5. リザルト処理
  */
 function showResultModal() {
     const modal = document.getElementById("result-modal");
@@ -257,7 +259,7 @@ function showResultModal() {
     if (currentContext.victory) {
         title.innerText = "VICTORY!!";
         title.style.color = "#f1c40f";
-        body.innerText = "敵を全て倒した！探索を続けますか？";
+        body.innerText = "敵を全滅させた！";
         
         if (currentContext.tamed) {
             document.getElementById("recruit-area").classList.remove("hidden");
@@ -269,12 +271,12 @@ function showResultModal() {
     } else {
         title.innerText = "DEFEAT...";
         title.style.color = "#ff4757";
-        body.innerText = "味方が全滅してしまった...";
+        body.innerText = "パーティーが力尽きた...";
         document.getElementById("title-btn").classList.remove("hidden");
     }
 }
 
-// 勧誘処理
+// 仲間にする処理
 async function recruitEnemy() {
     try {
         const response = await fetch("/battle/recruit", { method: "POST" });
@@ -285,7 +287,7 @@ async function recruitEnemy() {
     } catch (e) { console.error(e); }
 }
 
-// 終了して次へ
+// 戦闘を完全に終了して次のシーン（rest.html等）へ
 async function finishBattle() {
     try {
         const response = await fetch("/battle/finish", { method: "POST" });
